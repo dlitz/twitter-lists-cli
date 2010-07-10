@@ -5,8 +5,8 @@ require 'twitter'
 # Parse arguments
 options = {:only => false, :unfollow=>false}
 OptionParser.new do |opts|
-  opts.banner = "#{opts.program_name}"
-  opts.separator "Get OAuth credentials"
+  opts.banner = "usage: #{opts.program_name}"
+  opts.separator "Get OAuth credentials."
   opts.separator ""
   opts.separator "Global Options:"
   opts.on("--auth FILE", "Read authentication data from the specified FILE") do |optarg|

@@ -5,8 +5,8 @@ require 'twitter'
 # Parse arguments
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "#{opts.program_name} [-r] [-u USER] [LISTNAME]"
-  opts.separator "Show who is being followed by a user or a list"
+  opts.banner = "usage: #{opts.program_name} [-r] [-u USER] [LISTNAME]"
+  opts.separator "Show who is being followed by a user or a list."
   opts.separator ""
   opts.on("-u", "--user USER", "specify a username (default is the logged-in user)") do |optarg|
     options[:user] = optarg

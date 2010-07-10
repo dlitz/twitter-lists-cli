@@ -5,8 +5,8 @@ require 'twitter'
 # Parse arguments
 options = {:only => false, :unfollow=>false}
 OptionParser.new do |opts|
-  opts.banner = "#{opts.program_name} [-l LISTNAME] [--only | -d] [USER...]"
-  opts.separator "Follow or unfollow users"
+  opts.banner = "usage: #{opts.program_name} [-l LISTNAME] [--only | -d] [USER...]"
+  opts.separator "Follow or unfollow users."
   opts.separator ""
   opts.on("-l", "--list LISTNAME", "act on the specified LISTNAME instead of the logged-in user") do |optarg|
     options[:list] = optarg

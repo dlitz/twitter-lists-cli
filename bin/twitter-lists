@@ -5,8 +5,8 @@ require 'twitter'
 # Parse arguments
 options = {:create => false, :delete => false}
 OptionParser.new do |opts|
-  opts.banner = "#{opts.program_name} [-s] [-u USER] [-c LISTNAME... | -d LISTNAME...]"
-  opts.separator "Show, create, or delete lists"
+  opts.banner = "usage: #{opts.program_name} [-s] [-u USER] [-c LISTNAME... | -d LISTNAME...]"
+  opts.separator "Show, create, or delete lists."
   opts.on("-u", "--user USER", "specify a username (default is the logged-in user)") do |optarg|
     options[:user] = optarg
   end
