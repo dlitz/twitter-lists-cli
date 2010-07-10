@@ -5,11 +5,14 @@ require 'twitter'
 # Parse arguments
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "usage: #{opts.program_name} [-r] [-u USER] [LISTNAME]"
+  opts.banner = "usage: #{opts.program_name} [-r] [-u USER] [-l LISTNAME]"
   opts.separator "Show who is being followed by a user or a list."
   opts.separator ""
   opts.on("-u", "--user USER", "specify a username (default is the logged-in user)") do |optarg|
     options[:user] = optarg
+  end
+  opts.on("-l", "--list LISTNAME", "show members of the user's LISTNAME instead of the user's followers") do |optarg|
+    options[:list] = optarg
   end
   opts.on("-r", "--reverse", "show followers instead of who is following") do |optarg|
     options[:reverse] = optarg
@@ -24,8 +27,7 @@ end.parse!
 options[:auth_file] ||= ENV["TWITTER_AUTHFILE"]
 options[:auth_file] ||= File.expand_path("~/.twitter")
 raise "No --auth file specified" unless options[:auth_file] # XXX TODO - output usage information
-raise "Too many arguments specified" if ARGV.length > 1 # XXX TODO - output usage information
-options[:list] = ARGV[0]
+raise "Too many arguments specified" unless ARGV.empty? # XXX TODO - output usage information
 
 auth = YAML.load_file(options[:auth_file])
 oauth = Twitter::OAuth.new(auth["token"], auth["secret"])
