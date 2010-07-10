@@ -31,20 +31,22 @@ Commands included:
             --auth FILE                  Read authentication data from the specified FILE
 
 ### twitter-following
-    usage: twitter-following [-r] [-u USER] [LISTNAME]
+    usage: twitter-following [-r] [-u USER] [-l LISTNAME]
     Show who is being followed by a user or a list.
 
         -u, --user USER                  specify a username (default is the logged-in user)
+        -l, --list LISTNAME              show members of the user's LISTNAME instead of the user's followers
         -r, --reverse                    show followers instead of who is following
 
     Global options:
             --auth FILE                  Read authentication data from the specified FILE
 
 ### twitter-lists
-    usage: twitter-lists [-s] [-u USER] [-c LISTNAME... | -d LISTNAME...]
+    usage: twitter-lists [-s] [-u USER] [-c LISTNAME... | -C LISTNAME... | -d LISTNAME...]
     Show, create, or delete lists.
         -u, --user USER                  specify a username (default is the logged-in user)
         -c, --create                     create the specified list(s)
+        -C, --create-private             create private list(s)
         -d, --delete                     delete the specified list(s)
         -s, --slugs                      Use slugs instead of (possibly non-unique) names
 
