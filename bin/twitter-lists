@@ -3,7 +3,7 @@ require 'optparse'
 require 'twitter'
 
 # Parse arguments
-options = {:create => false, :delete => false}
+options = {:create => false, :delete => false, :private => false}
 OptionParser.new do |opts|
   opts.banner = "usage: #{opts.program_name} [-s] [-u USER] [-c LISTNAME... | -d LISTNAME...]"
   opts.separator "Show, create, or delete lists."
@@ -12,6 +12,10 @@ OptionParser.new do |opts|
   end
   opts.on("-c", "--create", "create the specified list(s)") do |optarg|
     options[:create] = true
+  end
+  opts.on("-C", "--create-private", "create private list(s)") do |optarg|
+    options[:create] = true
+    options[:private] = true
   end
   opts.on("-d", "--delete", "delete the specified list(s)") do |optarg|
     options[:delete] = true
@@ -61,7 +65,11 @@ options[:user] ||= base.verify_credentials.screen_name
 
 if options[:create]
   options[:lists].each do |list|
-    base.list_create(options[:user], :name => list)
+    if options[:private]
+      base.list_create(options[:user], :name => list, :mode => "private")
+    else
+      base.list_create(options[:user], :name => list)
+    end
   end
 elsif options[:delete]
   options[:lists].each do |list|
