@@ -1,0 +1,82 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'twitter'
+
+# Parse arguments
+options = {:create => false, :delete => false}
+OptionParser.new do |opts|
+  opts.banner = "#{opts.program_name} [-s] [-u USER] [-c LISTNAME... | -d LISTNAME...]"
+  opts.separator "Show, create, or delete lists"
+  opts.on("-u", "--user USER", "specify a username (default is the logged-in user)") do |optarg|
+    options[:user] = optarg
+  end
+  opts.on("-c", "--create", "create the specified list(s)") do |optarg|
+    options[:create] = true
+  end
+  opts.on("-d", "--delete", "delete the specified list(s)") do |optarg|
+    options[:delete] = true
+  end
+  opts.on("-s", "--slugs", "Use slugs instead of (possibly non-unique) names") do |optarg|
+    options[:slugs] = optarg
+  end
+  opts.separator ""
+  opts.separator "If no LISTNAMEs are specified on the command line, they will be read from stdin."
+  opts.separator ""
+  opts.separator "Global options:"
+  opts.on("--auth FILE", "Read authentication data from the specified FILE") do |optarg|
+    options[:auth_file] = optarg
+  end
+  opts.separator ""
+end.parse!
+raise "No --auth file specified" unless options[:auth_file] # XXX TODO - output usage information
+raise "--create and --delete are mutually exclusive" if options[:create] and options[:delete]
+if (options[:create] || options[:delete])
+  if ARGV.empty?
+    lists = []
+    begin
+      loop do
+        lists << STDIN.readline.strip
+      end
+    rescue EOFError
+    end
+    lists = lists.select{|u| u =~ /[^\s]/}  # skip blank lines
+    options[:lists] = lists
+  else
+    options[:lists] = ARGV
+  end
+else
+  raise "No arguments are allowed without --create or --delete" unless ARGV.empty?
+end
+
+auth = YAML.load_file(options[:auth_file])
+oauth = Twitter::OAuth.new(auth["token"], auth["secret"])
+oauth.authorize_from_access(auth["atoken"], auth["asecret"])
+base = Twitter::Base.new(oauth)
+
+# Knowing our own screen name is required
+options[:user] ||= auth["user"]
+options[:user] ||= base.verify_credentials.screen_name
+
+if options[:create]
+  options[:lists].each do |list|
+    require 'pp'; pp base.list_create(options[:user], :name => list)
+  end
+elsif options[:delete]
+  options[:lists].each do |list|
+    unless options[:slugs]
+      # convert list name to slug
+      list = list.downcase.gsub(/[^a-z0-9]+/, '-').gsub(/\A-+|-+\Z/, '').gsub(/-+/, '-')
+    end
+    base.list_delete(options[:user], list)
+  end
+else
+  cursor = -1
+  begin
+    query = {}
+    result = base.lists(options[:user], query.merge(:cursor => cursor))
+    result.lists.each do |list|
+      puts options[:slugs] ? list.slug : list.name
+    end
+    cursor = result.next_cursor
+  end until cursor == 0
+end

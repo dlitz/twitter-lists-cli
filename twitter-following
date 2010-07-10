@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'twitter'
+
+# Parse arguments
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "#{opts.program_name} [-r] [-u USER] [LISTNAME]"
+  opts.separator "Show who is being followed by a user or a list"
+  opts.separator ""
+  opts.on("-u", "--user USER", "specify a username (default is the logged-in user)") do |optarg|
+    options[:user] = optarg
+  end
+  opts.on("-r", "--reverse", "show followers instead of who is following") do |optarg|
+    options[:reverse] = optarg
+  end
+  opts.separator ""
+  opts.separator "Global options:"
+  opts.on("--auth FILE", "Read authentication data from the specified FILE") do |optarg|
+    options[:auth_file] = optarg
+  end
+  opts.separator ""
+end.parse!
+raise "No --auth file specified" unless options[:auth_file] # XXX TODO - output usage information
+raise "Too many arguments specified" if ARGV.length > 1 # XXX TODO - output usage information
+options[:list] = ARGV[0]
+
+auth = YAML.load_file(options[:auth_file])
+oauth = Twitter::OAuth.new(auth["token"], auth["secret"])
+oauth.authorize_from_access(auth["atoken"], auth["asecret"])
+base = Twitter::Base.new(oauth)
+
+# Knowing our own screen name is required when fetching list members
+if options[:list]
+  options[:user] ||= auth["user"]
+  options[:user] ||= base.verify_credentials.screen_name
+end
+
+cursor = -1
+begin
+  query = {}
+  if options[:list]
+    if options[:reverse]
+      result = base.list_subscribers(options[:user], options[:list], query.merge(:cursor => cursor))
+    else
+      result = base.list_members(options[:user], options[:list], query.merge(:cursor => cursor))
+    end
+  else
+    query[:screen_name] = options[:user] if options[:user]
+    if options[:reverse]
+      result = base.followers(query.merge(:cursor => cursor))
+    else
+      result = base.friends(query.merge(:cursor => cursor))
+    end
+  end
+  result.users.each do |u|
+    puts u.screen_name
+  end
+  cursor = result.next_cursor
+end until cursor == 0

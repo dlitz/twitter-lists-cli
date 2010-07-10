@@ -1,0 +1,81 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'twitter'
+
+# Parse arguments
+options = {:only => false, :unfollow=>false}
+OptionParser.new do |opts|
+  opts.banner = "#{opts.program_name} [-l LISTNAME] [--only | -d] [USER...]"
+  opts.separator "Follow or unfollow users"
+  opts.separator ""
+  opts.on("-l", "--list LISTNAME", "act on the specified LISTNAME instead of the logged-in user") do |optarg|
+    options[:list] = optarg
+  end
+  opts.on("-d", "--unfollow", "unfollow the specified users") do |optarg|
+    options[:unfollow] = optarg
+  end
+  opts.separator ""
+  opts.separator "If no USERs are specified on the command line, they will be read from stdin."
+  opts.separator ""
+  opts.separator "Global Options:"
+  opts.on("--auth FILE", "Read authentication data from the specified FILE") do |optarg|
+    options[:auth_file] = optarg
+  end
+  opts.separator ""
+end.parse!
+raise "No --auth file specified" unless options[:auth_file] # XXX TODO - output usage information
+raise "--unfollow and --only are mutually exclusive" if options[:unfollow] and options[:only]
+raise "--only not implemented yet" if options[:only]
+if ARGV.empty?
+  users = []
+  begin
+    loop do
+      users << STDIN.readline.strip
+    end
+  rescue EOFError
+  end
+  users = users.select{|u| u =~ /[^\s]/}  # skip blank lines
+  options[:users] = users
+else
+  options[:users] = ARGV
+end
+
+auth = YAML.load_file(options[:auth_file])
+oauth = Twitter::OAuth.new(auth["token"], auth["secret"])
+oauth.authorize_from_access(auth["atoken"], auth["asecret"])
+base = Twitter::Base.new(oauth)
+
+# Knowing our own screen name is required when fetching list members
+if options[:list]
+  options[:user] ||= auth["user"]
+  options[:user] ||= base.verify_credentials.screen_name
+end
+
+options[:users].each do |user|
+  if options[:list]
+    if options[:unfollow]
+      begin
+        base.list_remove_member(options[:user], options[:list], user)
+      rescue Twitter::TwitterError => e
+        # Don't raise exception if the user is already removed
+        raise unless e.data['error'] == "The user you are trying to remove from the list is not a member"
+      end
+    else
+      base.list_add_member(options[:user], options[:list], user)
+    end
+  else
+    if options[:unfollow]
+      begin
+        base.friendship_destroy(user)
+      rescue Twitter::TwitterError => e
+        raise unless e.data["error"] == "You are not friends with the specified user."
+      end
+    else
+      begin
+        base.friendship_create(user, true)
+      rescue Twitter::TwitterError => e
+        raise unless e.data["error"] =~ /\ACould not follow user: (.* is already on your list\.|You've already requested to follow .*)\Z/
+      end
+    end
+  end
+end

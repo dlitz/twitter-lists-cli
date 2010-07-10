@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'twitter'
+
+# Parse arguments
+options = {:only => false, :unfollow=>false}
+OptionParser.new do |opts|
+  opts.banner = "#{opts.program_name}"
+  opts.separator "Get OAuth credentials"
+  opts.separator ""
+  opts.separator "Global Options:"
+  opts.on("--auth FILE", "Read authentication data from the specified FILE") do |optarg|
+    options[:auth_file] = optarg
+  end
+  opts.separator ""
+end.parse!
+raise "No --auth file specified" unless options[:auth_file] # XXX TODO - output usage information
+raise "Too many arguments" unless ARGV.empty?
+
+auth = YAML.load_file(options[:auth_file])
+oauth = Twitter::OAuth.new(auth["token"], auth["secret"])
+rt = oauth.request_token
+puts "Go to https://#{rt.authorize_url}"
+print "Enter the PIN here: "
+$stdout.flush
+pin = $stdin.readline.strip
+
+atoken, asecret = oauth.authorize_from_request(rt.token, rt.secret, pin)
+
+puts({"atoken" => atoken, "asecret" => asecret}.to_yaml)
