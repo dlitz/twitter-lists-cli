@@ -4,10 +4,54 @@ A command-line client for manipulating large Twitter lists in the shell, shell s
 
 Currently supports
 ------------------
-- OAuth authentication
+- OAuth authentication (twitter-auth)
 - Showing a users's followers/following
 - Following and unfollowing users
 - Showing, adding, and removing a members from a list
+
+Commands included:
+------------------
+### twitter-auth
+    usage: twitter-auth
+    Get OAuth credentials.
+
+    Global Options:
+            --auth FILE                  Read authentication data from the specified FILE
+
+### twitter-follow
+    usage: twitter-follow [-l LISTNAME] [--only | -d] [USER...]
+    Follow or unfollow users.
+
+        -l, --list LISTNAME              act on the specified LISTNAME instead of the logged-in user
+        -d, --unfollow                   unfollow the specified users
+
+    If no USERs are specified on the command line, they will be read from stdin.
+
+    Global Options:
+            --auth FILE                  Read authentication data from the specified FILE
+
+### twitter-following
+    usage: twitter-following [-r] [-u USER] [LISTNAME]
+    Show who is being followed by a user or a list.
+
+        -u, --user USER                  specify a username (default is the logged-in user)
+        -r, --reverse                    show followers instead of who is following
+
+    Global options:
+            --auth FILE                  Read authentication data from the specified FILE
+
+### twitter-lists
+    usage: twitter-lists [-s] [-u USER] [-c LISTNAME... | -d LISTNAME...]
+    Show, create, or delete lists.
+        -u, --user USER                  specify a username (default is the logged-in user)
+        -c, --create                     create the specified list(s)
+        -d, --delete                     delete the specified list(s)
+        -s, --slugs                      Use slugs instead of (possibly non-unique) names
+
+    If no LISTNAMEs are specified on the command line, they will be read from stdin.
+
+    Global options:
+            --auth FILE                  Read authentication data from the specified FILE
 
 License
 -------
