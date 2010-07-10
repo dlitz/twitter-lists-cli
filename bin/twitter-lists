@@ -61,7 +61,7 @@ options[:user] ||= base.verify_credentials.screen_name
 
 if options[:create]
   options[:lists].each do |list|
-    require 'pp'; pp base.list_create(options[:user], :name => list)
+    base.list_create(options[:user], :name => list)
   end
 elsif options[:delete]
   options[:lists].each do |list|
