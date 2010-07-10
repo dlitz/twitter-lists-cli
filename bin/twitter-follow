@@ -54,30 +54,34 @@ if options[:list]
 end
 
 options[:users].each do |user|
-  if options[:list]
-    if options[:unfollow]
-      begin
-        base.list_remove_member(options[:user], options[:list], user)
-      rescue Twitter::TwitterError => e
-        # Don't raise exception if the user is already removed
-        raise unless e.data['error'] == "The user you are trying to remove from the list is not a member"
+  begin
+    if options[:list]
+      if options[:unfollow]
+        begin
+          base.list_remove_member(options[:user], options[:list], user)
+        rescue Twitter::TwitterError => e
+          # Don't raise exception if the user is already removed
+          raise unless e.data['error'] == "The user you are trying to remove from the list is not a member"
+        end
+      else
+        base.list_add_member(options[:user], options[:list], user)
       end
     else
-      base.list_add_member(options[:user], options[:list], user)
-    end
-  else
-    if options[:unfollow]
-      begin
-        base.friendship_destroy(user)
-      rescue Twitter::TwitterError => e
-        raise unless e.data["error"] == "You are not friends with the specified user."
-      end
-    else
-      begin
-        base.friendship_create(user, true)
-      rescue Twitter::TwitterError => e
-        raise unless e.data["error"] =~ /\ACould not follow user: (.* is already on your list\.|You've already requested to follow .*)\Z/
+      if options[:unfollow]
+        begin
+          base.friendship_destroy(user)
+        rescue Twitter::TwitterError => e
+          raise unless e.data["error"] == "You are not friends with the specified user."
+        end
+      else
+        begin
+          base.friendship_create(user, true)
+        rescue Twitter::TwitterError => e
+          raise unless e.data["error"] =~ /\ACould not follow user: (.* is already on your list\.|You've already requested to follow .*)\Z/
+        end
       end
     end
+  rescue Twitter::TwitterError => e
+    $stderr.puts "#{$0}: error: #{user}: #{e}"
   end
 end
