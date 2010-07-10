@@ -28,6 +28,8 @@ OptionParser.new do |opts|
   end
   opts.separator ""
 end.parse!
+options[:auth_file] ||= ENV["TWITTER_AUTHFILE"]
+options[:auth_file] ||= File.expand_path("~/.twitter")
 raise "No --auth file specified" unless options[:auth_file] # XXX TODO - output usage information
 raise "--create and --delete are mutually exclusive" if options[:create] and options[:delete]
 if (options[:create] || options[:delete])
