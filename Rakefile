@@ -20,6 +20,7 @@ EOF
     s.files = FileList["[A-Z]*", "bin/**/*"]
     s.add_dependency "twitter", "~> 0.9.5"    # John Nunemaker's twitter gem
   end
+  Jeweler::GemcutterTasks.new
 rescue LoadError
   puts "Jeweler, or one of its dependencies, is not available. Install it with: gem install jeweler"
 end
